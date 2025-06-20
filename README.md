@@ -36,6 +36,31 @@ A modern Android app built with **Jetpack Compose** that showcases a dynamic ima
 ## 🛠 Setup Instructions
 
 1. **Clone the repository**
+   [https://github.com/rahul0007/DynamicCarouselapp](https://github.com/rahul0007/DynamicCarouselapp)
+
    ```bash
    git clone https://github.com/rahul0007/DynamicCarouselapp.git
-   cd dynamic-carousel-app
+   cd DynamicCarouselapp
+   
+
+
+![Screenshot_1](https://github.com/rahul0007/DynamicCarouselapp/blob/9caa58ac9d0e558300a335fd9d385949d99a88b2/Screenshot_1.png).
+
+
+
+![Screenshot_2](https://github.com/rahul0007/DynamicCarouselapp/blob/9caa58ac9d0e558300a335fd9d385949d99a88b2/Screenshot_2.png).
+
+
+
+![Screenshot_3](https://github.com/rahul0007/DynamicCarouselapp/blob/9caa58ac9d0e558300a335fd9d385949d99a88b2/Screenshot_3.png).
+
+
+
+![Screenshot_4](https://github.com/rahul0007/DynamicCarouselapp/blob/9caa58ac9d0e558300a335fd9d385949d99a88b2/Screenshot_4.png).
+
+
+
+![Screenshot_5](https://github.com/rahul0007/DynamicCarouselapp/blob/9caa58ac9d0e558300a335fd9d385949d99a88b2/Screenshot_5.png).
+
+
+
