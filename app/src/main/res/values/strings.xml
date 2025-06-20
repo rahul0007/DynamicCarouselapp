@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Dynamic Carousel</string>
+    <string name="search_placeholder">Search</string>
+    <string name="search_icon_description">Search Icon</string>
+</resources>
