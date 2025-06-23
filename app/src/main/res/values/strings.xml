@@ -2,4 +2,6 @@
     <string name="app_name">Dynamic Carousel</string>
     <string name="search_placeholder">Search</string>
     <string name="search_icon_description">Search Icon</string>
+    <string name="fab_statistics_description">Show statistics\n</string>
+    <string name="search">Search...</string>
 </resources>

@@ -1,4 +1,5 @@
 package com.example.dynamiccarouselapp.presentation.main
+
 import ListItemCard
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.example.dynamiccarouselapp.core.util.Dimens
@@ -19,21 +21,20 @@ import com.example.dynamiccarouselapp.ui.theme.DotColor
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = remember { HomeViewModel() }) {
-    val items by viewModel.filteredItems
-    val query by viewModel.searchQuery
-    val currentPage by viewModel.currentPage
-    val categories = viewModel.allPages
+    val itemList by viewModel.filteredItemList.observeAsState(emptyList())
+    val searchQuery by viewModel.searchQuery.observeAsState("")
+    val selectedPage by viewModel.currentPageIndex.observeAsState(0)
+    val categoryPages = viewModel.categoryPages
+    val showBottomSheet = remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val showSheet = remember { mutableStateOf(false) }
-
-    if (showSheet.value) {
+    if (showBottomSheet.value) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet.value = false },
-            sheetState = bottomSheetState
+            onDismissRequest = { showBottomSheet.value = false },
+            sheetState = sheetState
         ) {
             Text(
-                text = viewModel.getStatistics(),
+                text = viewModel.getStatisticsText(),
                 modifier = Modifier.padding(Dimens.PaddingL),
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -44,26 +45,22 @@ fun HomeScreen(viewModel: HomeViewModel = remember { HomeViewModel() }) {
         containerColor = Color.White,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showSheet.value = true },
+                onClick = { showBottomSheet.value = true },
                 containerColor = DotColor,
                 shape = CircleShape
             ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Stats",
-                    tint = Color.White
-                )
+                Icon(Icons.Default.MoreVert, contentDescription = "Show Stats", tint = Color.White)
             }
         }
-    ) { scaffoldPadding ->
+    ) { padding ->
         LazyColumn(
-            modifier = Modifier.padding(scaffoldPadding),
+            modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(Dimens.PaddingL)
         ) {
             item {
                 ImageCarousel(
-                    categories = categories,
-                    currentPage = currentPage,
+                    categories = categoryPages,
+                    currentPage = selectedPage,
                     onPageChanged = viewModel::onPageChanged
                 )
             }
@@ -71,13 +68,13 @@ fun HomeScreen(viewModel: HomeViewModel = remember { HomeViewModel() }) {
             stickyHeader {
                 Surface(color = Color.White) {
                     SearchBar(
-                        query = query,
+                        query = searchQuery,
                         onQueryChanged = viewModel::onSearchQueryChanged
                     )
                 }
             }
 
-            items(items) { item ->
+            items(itemList) { item ->
                 ListItemCard(
                     title = item.title,
                     subtitle = item.subtitle,
