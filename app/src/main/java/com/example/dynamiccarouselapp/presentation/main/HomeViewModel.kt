@@ -1,97 +1,61 @@
 package com.example.dynamiccarouselapp.presentation.main
-
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.dynamiccarouselapp.R
-import com.example.dynamiccarouselapp.core.util.Dimens.FontLarge
+import com.example.dynamiccarouselapp.data.CategoryDataProvider
 import com.example.dynamiccarouselapp.domain.model.CategoryPage
 import com.example.dynamiccarouselapp.domain.model.ListItemData
-
 class HomeViewModel : ViewModel() {
-    // Static category + items data
-    val categoryPages: List<CategoryPage> = listOf(
-        CategoryPage(
-            title = "Fruits",
-            baseImages = R.drawable.fruits,
-            items = listOf(
-                ListItemData("Apple", "Fresh and juicy", R.drawable.apple),
-                ListItemData("Banana", "Rich in potassium", R.drawable.banana),
-                ListItemData("Orange", "Full of Vitamin C", R.drawable.orange),
-                ListItemData("Pineapple", "Tropical and tangy", R.drawable.pineapple),
-                ListItemData("Grapes", "Sweet and seedless", R.drawable.grapes),
-                ListItemData("Mango", "King of fruits", R.drawable.mango),
-                ListItemData("Watermelon", "Refreshing and hydrating", R.drawable.watermelon),
-                ListItemData("Papaya", "Soft and nutritious", R.drawable.papaya),
-                ListItemData("Guava", "Rich in Vitamin C", R.drawable.guava),
-                ListItemData("Lychee", "Sweet and aromatic", R.drawable.lychee),
-                ListItemData("Pomegranate", "Juicy with seeds", R.drawable.pomegranate)
-            )
-        ),
-        CategoryPage(
-            title = "Vegetables",
-            baseImages = R.drawable.vegetables,
-            items = listOf(
-                ListItemData("Carrot", "Good for eyes", R.drawable.carrot),
-                ListItemData("Tomato", "Rich in lycopene", R.drawable.tomato),
-                ListItemData("Spinach", "Iron rich", R.drawable.spinach),
-                ListItemData("Broccoli", "High in fiber", R.drawable.broccoli),
-                ListItemData("Potato", "Starchy and filling", R.drawable.potato),
-                ListItemData("Onion", "Essential in cooking", R.drawable.onion),
-                ListItemData("Cucumber", "Cool and crunchy", R.drawable.cucumber),
-                ListItemData("Peas", "Green and sweet", R.drawable.peas)
-            )
-        ),
-        CategoryPage(
-            title = "Berries",
-            baseImages = R.drawable.berries,
-            items = listOf(
-                ListItemData("Strawberry", "Sweet and red", R.drawable.strawberry),
-                ListItemData("Blueberry", "Antioxidant-rich", R.drawable.blueberry),
-                ListItemData("Raspberry", "Tart and tasty", R.drawable.raspberry)
-            )
-        )
-    )
 
-    // Page and query state
+    // List of category pages with associated items and images (static dummy data)
+    val categoryPages: List<CategoryPage> = CategoryDataProvider.getAllCategories()
+
+    // --- State: Currently selected category page index
     private val _currentPageIndex = MutableLiveData(0)
     val currentPageIndex: LiveData<Int> = _currentPageIndex
 
+    // --- State: Search query entered by the user
     private val _searchQuery = MutableLiveData("")
     val searchQuery: LiveData<String> = _searchQuery
 
+    // --- State: Filtered list of items shown in the UI
     private val _filteredItemList = MutableLiveData<List<ListItemData>>()
     val filteredItemList: LiveData<List<ListItemData>> = _filteredItemList
 
+    // Called when ViewModel is created – filters initial list
     init {
         filterItems()
     }
-
+    /**
+     * Updates the search query and refreshes the filtered item list.
+     */
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
         filterItems()
     }
 
+    /**
+     * Updates the selected page index and refreshes the filtered item list.
+     */
     fun onPageChanged(newPageIndex: Int) {
         _currentPageIndex.value = newPageIndex
         filterItems()
     }
 
+    /**
+     * Filters the items based on the current page and search query.
+     * If the query is blank, it shows all items of the selected page.
+     * Otherwise, filters items where title or subtitle starts with the query.
+     */
+
     private fun filterItems() {
         val query = _searchQuery.value.orEmpty().trim().lowercase()
         val pageIndex = _currentPageIndex.value ?: 0
+
+        // Get all items from the selected page
         val allItems = categoryPages.getOrNull(pageIndex)?.items.orEmpty()
 
+        // Apply filtering based on query
         _filteredItemList.value = if (query.isBlank()) {
             allItems
         } else {
@@ -101,28 +65,49 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    fun getStatisticsText(): String {
-        val pageIndex = _currentPageIndex.value ?: 0
-        val currentItems = categoryPages.getOrNull(pageIndex)?.items.orEmpty()
+    /**
+     * Returns a formatted statistics string showing:
+     * - Number of items in the current or filtered list
+     * - Top 3 most frequent characters in item titles
+     */
 
+    fun getStatisticsText(): String {
+        val query = _searchQuery.value.orEmpty().trim()
+        val pageIndex = _currentPageIndex.value ?: 0
+
+        // Get either full list or filtered list based on search
+        val fullList = categoryPages.getOrNull(pageIndex)?.items.orEmpty()
+        val activeList = if (query.isBlank()) {
+            fullList
+        } else {
+            _filteredItemList.value.orEmpty()
+        }
+
+        // Count character frequencies in item titles
         val frequencyMap = mutableMapOf<Char, Int>()
-        for (item in currentItems) {
-            item.title.lowercase().forEach { char ->
-                if (char.isLetter()) {
-                    frequencyMap[char] = frequencyMap.getOrDefault(char, 0) + 1
+        for (item in activeList) {
+            item.title.lowercase().forEach { ch ->
+                if (ch.isLetter()) {
+                    frequencyMap[ch] = frequencyMap.getOrDefault(ch, 0) + 1
                 }
             }
         }
 
+        // Get top 3 most frequent characters
         val topFrequencies = frequencyMap.entries
             .sortedByDescending { it.value }
             .take(3)
             .joinToString("\n") { "${it.key} = ${it.value}" }
 
-        val title = "${categoryPages[pageIndex].title} (${currentItems.size} items)"
+        // Prepare the result string
+        val title = if (query.isBlank()) {
+            "${categoryPages[pageIndex].title} (${fullList.size} items)"
+        } else {
+            "Search Results (${activeList.size} items)"
+        }
+
         return "$title\n$topFrequencies"
     }
 }
-
 
 

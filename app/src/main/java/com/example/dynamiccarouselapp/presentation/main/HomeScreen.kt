@@ -21,59 +21,73 @@ import com.example.dynamiccarouselapp.ui.theme.DotColor
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = remember { HomeViewModel() }) {
-    val itemList by viewModel.filteredItemList.observeAsState(emptyList())
-    val searchQuery by viewModel.searchQuery.observeAsState("")
-    val selectedPage by viewModel.currentPageIndex.observeAsState(0)
-    val categoryPages = viewModel.categoryPages
-    val showBottomSheet = remember { mutableStateOf(false) }
+
+    // --- Observe state from ViewModel ---
+    val itemList by viewModel.filteredItemList.observeAsState(emptyList())     // Filtered list of items
+    val searchQuery by viewModel.searchQuery.observeAsState("")                // Current search query
+    val selectedPage by viewModel.currentPageIndex.observeAsState(0)           // Currently selected page index
+    val categoryPages = viewModel.categoryPages                                // All category data
+
+    // --- Bottom sheet state ---
+    val showBottomSheet = remember { mutableStateOf(false) }                   // Controls whether bottom sheet is visible
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // --- Bottom Sheet Content ---
     if (showBottomSheet.value) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet.value = false },
+            onDismissRequest = { showBottomSheet.value = false },              // Close sheet on dismiss
             sheetState = sheetState
         ) {
             Text(
-                text = viewModel.getStatisticsText(),
+                text = viewModel.getStatisticsText(),                          // Show statistics string
                 modifier = Modifier.padding(Dimens.PaddingL),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
     }
 
+    // --- Main Scaffold Layout ---
     Scaffold(
         containerColor = Color.White,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showBottomSheet.value = true },
+                onClick = { showBottomSheet.value = true },                    // Show bottom sheet on FAB click
                 containerColor = DotColor,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Show Stats", tint = Color.White)
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Show Stats",
+                    tint = Color.White
+                )
             }
         }
     ) { padding ->
+        // --- Main Content: LazyColumn with carousel, search bar, and item list ---
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(Dimens.PaddingL)
         ) {
+            // --- Image carousel at the top ---
             item {
                 ImageCarousel(
                     categories = categoryPages,
                     currentPage = selectedPage,
-                    onPageChanged = viewModel::onPageChanged
+                    onPageChanged = viewModel::onPageChanged                  // Update page on swipe
                 )
             }
 
+            // --- Sticky Search Bar Header ---
             stickyHeader {
                 Surface(color = Color.White) {
                     SearchBar(
                         query = searchQuery,
-                        onQueryChanged = viewModel::onSearchQueryChanged
+                        onQueryChanged = viewModel::onSearchQueryChanged      // Update query on input change
                     )
                 }
             }
 
+            // --- Display filtered items as a list ---
             items(itemList) { item ->
                 ListItemCard(
                     title = item.title,
