@@ -17,6 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 class HomeActivity : AppCompatActivity() {
 
     // --- View binding and adapters ---
+
     private lateinit var binding: HomeActivityBinding
     private lateinit var viewModel: HomeViewModel
     private lateinit var itemAdapter: ItemAdapter
